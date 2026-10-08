@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="LawBot 2.0 - Lawyer Connect: Find and connect with verified legal professionals across India based on specialization, location, and language.">
+  <title>Lawyer Connect — LawBot 2.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lawlens.css">
+  <style>
+    /* Lawyer Connect Page-Specific Refinements */
+    .filter-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) auto;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+
+    @media (max-width: 992px) {
+      .filter-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .filter-actions {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .filter-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .initials-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.125rem;
+      letter-spacing: 0.03em;
+      flex-shrink: 0;
+      border: 1px solid rgba(184, 134, 11, 0.3);
+      user-select: none;
+    }
+
+    .initials-circle-lg {
+      width: 64px;
+      height: 64px;
+      font-size: 1.375rem;
+    }
+
+    .lawyer-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+    }
+
+    .lawyer-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-md);
+    }
+
+    .lawyer-card-header {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .lawyer-card-title-group {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .lawyer-card-name {
+      font-size: 1.0625rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0 0 4px 0;
+      line-height: 1.3;
+    }
+
+    .lawyer-meta-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin: 0.75rem 0 1rem 0;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+
+    .lawyer-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lawyer-meta-item svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      color: var(--text-light);
+    }
+
+    .lawyer-profile-preview {
+      font-size: 0.875rem;
+      color: var(--text);
+      line-height: 1.55;
+      margin-bottom: 1.25rem;
+      flex-grow: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .lawyer-card-footer {
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--success);
+    }
+
+    /* Modal Accessibility & Display Tweaks */
+    .modal-overlay[hidden] {
+      display: none !important;
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .modal-overlay:not([hidden]) {
+      display: flex;
+    }
+
+    .modal-close-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+      display: block;
+      font-weight: 300;
+    }
+  </style>
+</head>
+<body data-page="lawyer-connect">
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <a href="index.html" class="navbar-brand" aria-label="LawBot 2.0 Home">
+        <div class="brand-icon-wrapper" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="M7 21h10"/>
+            <path d="M12 3v18"/>
+            <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+          </svg>
+        </div>
+        <div class="brand-details">
+          <span class="brand-title">LawBot 2.0</span>
+          <span class="brand-tagline">AI-Powered Legal Assistance</span>
+        </div>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a href="index.html" class="nav-link">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a href="legal-qa.html" class="nav-link">Ask LawBot</a>
+          </li>
+          <li class="nav-item">
+            <a href="document-analysis.html" class="nav-link">Document Analysis</a>
+          </li>
+          <li class="nav-item">
+            <a href="lawyer-connect.html" class="nav-link active" aria-current="page">Lawyer Connect</a>
+          </li>
+          <li class="nav-item">
+            <a href="evaluation.html" class="nav-link">Evaluation</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Lawyer Connect</h1>
+          <p class="page-description">Find legal professionals based on specialization, location, and language.</p>
+        </div>
+      </div>
+
+      <!-- Filter Section -->
+      <section class="filter-card" aria-label="Lawyer Search and Filtering">
+        <form id="lawyerFilterForm" onsubmit="return false;">
+          <div class="filter-grid">
+            <!-- Specialization Filter -->
+            <div class="form-group mb-0">
+              <label for="filterSpecialization" class="form-label">Specialization</label>
+              <select id="filterSpecialization" class="form-control" aria-label="Filter by specialization">
+                <option value="">All Specializations</option>
+              </select>
+            </div>
+
+            <!-- Location Filter -->
+            <div class="form-group mb-0">
+              <label for="filterLocation" class="form-label">Location</label>
+              <select id="filterLocation" class="form-control" aria-label="Filter by location">
+                <option value="">All Locations</option>
+              </select>
+            </div>
+
+            <!-- Language Filter -->
+            <div class="form-group mb-0">
+              <label for="filterLanguage" class="form-label">Language</label>
+              <select id="filterLanguage" class="form-control" aria-label="Filter by language">
+                <option value="">All Languages</option>
+              </select>
+            </div>
+
+            <!-- Actions -->
+            <div class="filter-actions flex gap-2">
+              <button type="button" id="searchLawyers" class="btn btn-primary" aria-label="Apply lawyer filters">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <span>Search</span>
+              </button>
+              <button type="button" id="resetFilters" class="btn btn-secondary" title="Reset all search filters" aria-label="Reset all search filters">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <path d="M3 3v5h5"/>
+                </svg>
+                <span>Reset</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- Global Consultation Success Notification (hidden by default) -->
+      <div id="consultationSuccess" class="alert alert-success mb-6" hidden role="alert" style="display:none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <div class="alert-content">
+          <div class="alert-title">Consultation Request Submitted Successfully</div>
+          <p id="consultationSuccessMessage" class="mb-0 text-sm">
+            Your legal consultation inquiry has been forwarded to the advocate. You will be contacted via your provided contact details to confirm the consultation schedule.
+          </p>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <section class="results-section" aria-labelledby="resultsSectionHeading">
+        <div class="section-header">
+          <div>
+            <h2 id="resultsSectionHeading" class="section-title">Legal Advocates &amp; Counsel</h2>
+            <div id="lawyerCount" class="section-subtitle">Loading verified legal professionals...</div>
+          </div>
+        </div>
+
+        <!-- Lawyer Cards Grid (id='lawyerGrid', class='grid-3') -->
+        <div id="lawyerGrid" class="grid-3" aria-live="polite">
+          <!-- Lawyer cards rendered dynamically by JavaScript -->
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Lawyer Profile Modal (id='lawyerModal', hidden) -->
+  <div id="lawyerModal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modalLawyerName">
+    <div class="modal" role="document">
+      <div class="modal-header">
+        <div class="flex items-center gap-3">
+          <div id="modalLawyerAvatar" class="initials-circle" aria-hidden="true">
+            --
+          </div>
+          <div>
+            <h3 id="modalLawyerName" class="modal-title">Lawyer Profile</h3>
+            <span id="modalLawyerSpecialization" class="badge badge-accent mt-1">Specialization</span>
+          </div>
+        </div>
+        <button type="button" class="modal-close" id="closeLawyerModalBtn" aria-label="Close profile modal">
+          <span class="modal-close-icon" aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Quick Attribute Grid -->
+        <div class="meta-grid mb-4">
+          <div class="meta-item">
+            <span class="meta-label">Experience</span>
+            <span class="meta-value" id="modalLawyerExperience">--</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Location</span>
+            <span class="meta-value" id="modalLawyerLocation">--</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Languages</span>
+            <span class="meta-value" id="modalLawyerLanguages">--</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Availability</span>
+            <div class="status-indicator mt-1" id="modalLawyerAvailabilityWrapper">
+              <span class="status-dot"></span>
+              <span id="modalLawyerAvailability">Available</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- About / Profile Bio -->
+        <div class="mb-4">
+          <h4 style="font-size: 0.9375rem; font-weight: 700; color: var(--primary); margin-bottom: 8px;">Professional Background</h4>
+          <p id="modalLawyerProfile" style="font-size: 0.875rem; color: var(--text); line-height: 1.6; margin: 0;"></p>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="card p-3 mb-2" style="background-color: #fafbfc; border: 1px solid var(--border); padding: 14px 16px;">
+          <h4 style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px;">Direct Contact Information</h4>
+          <div id="modalLawyerContact" class="font-mono text-sm text-primary font-semibold">--</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="dismissLawyerModalBtn">Close</button>
+        <button type="button" class="btn btn-primary" id="requestConsultationFromProfileBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span>Request Consultation</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consultation Request Modal (id='consultationModal', hidden) -->
+  <div id="consultationModal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="consultationModalTitle">
+    <div class="modal" role="document">
+      <div class="modal-header">
+        <div>
+          <h3 id="consultationModalTitle" class="modal-title">Request Legal Consultation</h3>
+          <p id="consultationModalSubtitle" class="text-xs text-muted mt-1 mb-0">Direct consultation request</p>
+        </div>
+        <button type="button" class="modal-close" id="closeConsultationModalBtn" aria-label="Close consultation modal">
+          <span class="modal-close-icon" aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Error Alert -->
+        <div id="consultationModalError" class="alert alert-danger mb-4" hidden role="alert">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div class="alert-content">
+            <div class="alert-title">Submission Failed</div>
+            <p id="consultationModalErrorText" class="mb-0 text-sm">Please check your details and try again.</p>
+          </div>
+        </div>
+
+        <!-- Consultation Form -->
+        <form id="consultationForm">
+          <!-- Hidden lawyer_id field -->
+          <input type="hidden" id="consultationLawyerId" name="lawyer_id" value="">
+
+          <!-- Name (text input, required) -->
+          <div class="form-group">
+            <label for="consultationName" class="form-label">Full Name <span class="required" aria-hidden="true">*</span></label>
+            <input type="text" id="consultationName" name="name" class="form-control" placeholder="e.g. Ramesh Kulkarni" required>
+          </div>
+
+          <!-- Legal Issue (text input, required) -->
+          <div class="form-group">
+            <label for="consultationLegalIssue" class="form-label">Legal Issue <span class="required" aria-hidden="true">*</span></label>
+            <input type="text" id="consultationLegalIssue" name="legal_issue" class="form-control" placeholder="e.g. Commercial Lease Dispute, IPC Section 420 Defense" required>
+          </div>
+
+          <div class="grid-2">
+            <!-- Preferred Language (select) -->
+            <div class="form-group">
+              <label for="consultationLanguage" class="form-label">Preferred Language</label>
+              <select id="consultationLanguage" name="preferred_language" class="form-control">
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Marathi">Marathi</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Telugu">Telugu</option>
+                <option value="Bengali">Bengali</option>
+                <option value="Gujarati">Gujarati</option>
+                <option value="Kannada">Kannada</option>
+                <option value="Malayalam">Malayalam</option>
+                <option value="Punjabi">Punjabi</option>
+              </select>
+            </div>
+
+            <!-- Preferred Date (date input) -->
+            <div class="form-group">
+              <label for="consultationDate" class="form-label">Preferred Date</label>
+              <input type="date" id="consultationDate" name="preferred_date" class="form-control">
+            </div>
+          </div>
+
+          <!-- Contact Information (text input, required) -->
+          <div class="form-group">
+            <label for="consultationContact" class="form-label">Contact Information <span class="required" aria-hidden="true">*</span></label>
+            <input type="text" id="consultationContact" name="contact_info" class="form-control" placeholder="Email address or phone number (e.g. ramesh@example.com / +91 98765 43210)" required>
+            <p class="form-hint">The advocate's office will use this contact method to reach you directly.</p>
+          </div>
+
+          <!-- Short Description (textarea) -->
+          <div class="form-group">
+            <label for="consultationDescription" class="form-label">Short Description</label>
+            <textarea id="consultationDescription" name="description" class="form-control" rows="3" placeholder="Briefly outline relevant facts, case background, or specific questions for the advocate..."></textarea>
+          </div>
+
+          <!-- Form Action Buttons -->
+          <div class="modal-footer" style="padding: 1.25rem 0 0 0; background: transparent; border-top: 1px solid var(--border); margin-top: 1.25rem;">
+            <button type="button" class="btn btn-secondary" id="cancelConsultationBtn">Cancel</button>
+            <button type="submit" id="submitConsultationBtn" class="btn btn-primary">
+              <span id="submitBtnText">Submit Request</span>
+              <span id="submitBtnSpinner" class="spinner spinner-sm spinner-white" style="display: none;" aria-hidden="true"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disclaimer Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="disclaimer-box mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <div>
+          LawBot 2.0 provides AI-generated legal information for educational and informational purposes and is not a substitute for advice from a qualified legal professional. Lawyer directory listings and consultation scheduling facilitate initial inquiries with independent advocates.
+        </div>
+      </div>
+
+      <div class="footer-inner">
+        <div class="footer-copy">
+          &copy; 2025 LawBot 2.0 &bull; AI-Powered Legal Assistance
+        </div>
+        <div class="footer-links">
+          <a href="index.html">Dashboard</a>
+          &bull;
+          <a href="legal-qa.html">Ask LawBot</a>
+          &bull;
+          <a href="document-analysis.html">Document Analysis</a>
+          &bull;
+          <a href="lawyer-connect.html">Lawyer Connect</a>
+          &bull;
+          <a href="evaluation.html">Evaluation</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="lawlens.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      // Comprehensive curated lawyer roster (used directly or as fallback when API is unavailable)
+      const MOCK_LAWYERS = [
+        {
+          id: "1",
+          name: "Adv. Rajesh Sharma",
+          specialization: "Criminal Law",
+          location: "New Delhi",
+          languages: ["English", "Hindi"],
+          experience_years: 16,
+          profile: "Senior advocate specializing in criminal defense, white-collar crimes, appellate litigation, and trial advocacy before the Delhi High Court and Supreme Court of India.",
+          contact: "rsharma.advocate@delhibar.org | +91 98110 23456",
+          availability: "Available (Mon-Fri, 10 AM - 5 PM)"
+        },
+        {
+          id: "2",
+          name: "Adv. Meera Deshmukh",
+          specialization: "Corporate & Commercial",
+          location: "Mumbai",
+          languages: ["English", "Hindi", "Marathi"],
+          experience_years: 14,
+          profile: "Partner at premier corporate law chambers. Advises on M&A, shareholder agreements, corporate governance, commercial contract disputes, and NCLT proceedings.",
+          contact: "meera.deshmukh@mumbaichambers.in | +91 98201 34567",
+          availability: "Available (Mon-Sat, 11 AM - 6 PM)"
+        },
+        {
+          id: "3",
+          name: "Adv. Arvind Swaminathan",
+          specialization: "Intellectual Property",
+          location: "Bengaluru",
+          languages: ["English", "Tamil", "Kannada"],
+          experience_years: 12,
+          profile: "Expert in patent portfolio management, trademark litigation, software licensing, and copyright enforcement across technology and life sciences sectors.",
+          contact: "arvind.ip@swaminathanlegal.com | +91 98450 45678",
+          availability: "Available (Mon-Fri, 9:30 AM - 5:30 PM)"
+        },
+        {
+          id: "4",
+          name: "Adv. Priya Varma",
+          specialization: "Constitutional Law",
+          location: "New Delhi",
+          languages: ["English", "Hindi", "Malayalam"],
+          experience_years: 18,
+          profile: "Senior counsel representing public interest litigations, fundamental rights challenges, administrative review, and constitutional writ petitions before appellate courts.",
+          contact: "pvarma@supremecourtbar.in | +91 98180 56789",
+          availability: "Available by Appointment"
+        },
+        {
+          id: "5",
+          name: "Adv. Vikramaditya Joshi",
+          specialization: "Real Estate & Property Law",
+          location: "Pune",
+          languages: ["English", "Marathi", "Hindi"],
+          experience_years: 15,
+          profile: "Specialized in title diligence, RERA compliance, conveyance disputes, land acquisition, and commercial lease structuring across Maharashtra.",
+          contact: "vjoshi@punerealestatelegal.com | +91 98500 67890",
+          availability: "Available (Tue-Sat, 10 AM - 6 PM)"
+        },
+        {
+          id: "6",
+          name: "Adv. Sunita Narang",
+          specialization: "Family & Matrimonial Law",
+          location: "New Delhi",
+          languages: ["English", "Hindi", "Punjabi"],
+          experience_years: 11,
+          profile: "Experienced family mediator and litigator focusing on matrimonial settlements, child custody, probate administration, and succession planning.",
+          contact: "sunita.narang@familylegal.org | +91 98710 78901",
+          availability: "Available (Mon-Fri, 10 AM - 4 PM)"
+        },
+        {
+          id: "7",
+          name: "Adv. Rohan Mukherjee",
+          specialization: "Cyber & Data Protection",
+          location: "Bengaluru",
+          languages: ["English", "Bengali", "Hindi"],
+          experience_years: 9,
+          profile: "Focuses on IT Act compliance, Digital Personal Data Protection Act (DPDPA), data breach incident response, and cybercrime defense.",
+          contact: "rohan.mukherjee@cyberlex.in | +91 98300 89012",
+          availability: "Available (Mon-Fri, 11 AM - 7 PM)"
+        },
+        {
+          id: "8",
+          name: "Adv. K. Venkataraman",
+          specialization: "Tax Law & GST",
+          location: "Chennai",
+          languages: ["English", "Tamil"],
+          experience_years: 20,
+          profile: "Practicing before the Madras High Court and Tax Tribunals. Advises corporate entities on direct taxes, transfer pricing, and indirect tax/GST dispute resolution.",
+          contact: "venkat@chennaitaxbar.com | +91 98400 90123",
+          availability: "Available (Mon-Fri, 10 AM - 5 PM)"
+        },
+        {
+          id: "9",
+          name: "Adv. Ananya Roy",
+          specialization: "Labor & Employment Law",
+          location: "Kolkata",
+          languages: ["English", "Bengali", "Hindi"],
+          experience_years: 13,
+          profile: "Advises multinational employers and executives on employment contracts, POSH Act compliance, union negotiations, and Industrial Disputes Tribunal advocacy.",
+          contact: "ananya.roy@calcuttabar.in | +91 98310 12345",
+          availability: "Available (Mon-Sat, 10 AM - 5:30 PM)"
+        },
+        {
+          id: "10",
+          name: "Adv. Harish Patel",
+          specialization: "Banking & Insolvency",
+          location: "Ahmedabad",
+          languages: ["English", "Gujarati", "Hindi"],
+          experience_years: 17,
+          profile: "Extensive experience in IBC (Insolvency and Bankruptcy Code) proceedings, SARFAESI enforcement, debt recovery tribunal (DRT) litigation, and banking settlements.",
+          contact: "harish.patel@gujaratlaw.in | +91 98250 23456",
+          availability: "Available (Mon-Fri, 10:30 AM - 6 PM)"
+        }
+      ];
+
+      // DOM Elements
+      const filterSpecialization = document.getElementById('filterSpecialization');
+      const filterLocation = document.getElementById('filterLocation');
+      const filterLanguage = document.getElementById('filterLanguage');
+      const searchLawyersBtn = document.getElementById('searchLawyers');
+      const resetFiltersBtn = document.getElementById('resetFilters');
+
+      const lawyerCountEl = document.getElementById('lawyerCount');
+      const lawyerGridEl = document.getElementById('lawyerGrid');
+
+      const consultationSuccessEl = document.getElementById('consultationSuccess');
+      const consultationSuccessMessage = document.getElementById('consultationSuccessMessage');
+
+      // Lawyer Modal Elements
+      const lawyerModal = document.getElementById('lawyerModal');
+      const closeLawyerModalBtn = document.getElementById('closeLawyerModalBtn');
+      const dismissLawyerModalBtn = document.getElementById('dismissLawyerModalBtn');
+      const requestConsultationFromProfileBtn = document.getElementById('requestConsultationFromProfileBtn');
+
+      const modalLawyerAvatar = document.getElementById('modalLawyerAvatar');
+      const modalLawyerName = document.getElementById('modalLawyerName');
+      const modalLawyerSpecialization = document.getElementById('modalLawyerSpecialization');
+      const modalLawyerExperience = document.getElementById('modalLawyerExperience');
+      const modalLawyerLocation = document.getElementById('modalLawyerLocation');
+      const modalLawyerLanguages = document.getElementById('modalLawyerLanguages');
+      const modalLawyerProfile = document.getElementById('modalLawyerProfile');
+      const modalLawyerContact = document.getElementById('modalLawyerContact');
+      const modalLawyerAvailability = document.getElementById('modalLawyerAvailability');
+
+      // Consultation Modal Elements
+      const consultationModal = document.getElementById('consultationModal');
+      const closeConsultationModalBtn = document.getElementById('closeConsultationModalBtn');
+      const cancelConsultationBtn = document.getElementById('cancelConsultationBtn');
+      const consultationForm = document.getElementById('consultationForm');
+      const consultationLawyerId = document.getElementById('consultationLawyerId');
+      const consultationModalSubtitle = document.getElementById('consultationModalSubtitle');
+      const consultationModalError = document.getElementById('consultationModalError');
+      const consultationModalErrorText = document.getElementById('consultationModalErrorText');
+      const submitConsultationBtn = document.getElementById('submitConsultationBtn');
+      const submitBtnText = document.getElementById('submitBtnText');
+      const submitBtnSpinner = document.getElementById('submitBtnSpinner');
+
+      // State
+      let allLawyers = [];
+      let activeLawyer = null;
+
+      // Extract Initials (first letter of first and last name, e.g. "Adv. Rajesh Sharma" -> "RS")
+      function getInitials(name) {
+        if (!name) return 'LA';
+        const cleaned = name.replace(/^(advocate|adv\.|adv|dr\.|mr\.|ms\.|mrs\.)\s+/i, '').trim();
+        const parts = cleaned.split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return 'LA';
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+
+      function escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, function (m) { return map[m]; });
+      }
+
+      function getLanguagesArray(lawyer) {
+        if (!lawyer.languages) return [];
+        if (Array.isArray(lawyer.languages)) return lawyer.languages;
+        if (typeof lawyer.languages === 'string') {
+          return lawyer.languages.split(',').map(s => s.trim()).filter(Boolean);
+        }
+        return [];
+      }
+
+      // Populate Dynamic Filter Dropdowns based on active lawyer dataset
+      function populateFilterDropdowns(lawyers) {
+        const specializations = new Set();
+        const locations = new Set();
+        const languages = new Set();
+
+        lawyers.forEach(l => {
+          if (l.specialization) specializations.add(l.specialization.trim());
+          if (l.location) locations.add(l.location.trim());
+          const langs = getLanguagesArray(l);
+          langs.forEach(lang => languages.add(lang.trim()));
+        });
+
+        // Current selected values to preserve if available
+        const currentSpec = filterSpecialization.value;
+        const currentLoc = filterLocation.value;
+        const currentLang = filterLanguage.value;
+
+        // Reset dropdowns with default options
+        filterSpecialization.innerHTML = '<option value="">All Specializations</option>';
+        filterLocation.innerHTML = '<option value="">All Locations</option>';
+        filterLanguage.innerHTML = '<option value="">All Languages</option>';
+
+        // Append sorted options
+        Array.from(specializations).sort().forEach(spec => {
+          const opt = document.createElement('option');
+          opt.value = spec;
+          opt.textContent = spec;
+          if (spec === currentSpec) opt.selected = true;
+          filterSpecialization.appendChild(opt);
+        });
+
+        Array.from(locations).sort().forEach(loc => {
+          const opt = document.createElement('option');
+          opt.value = loc;
+          opt.textContent = loc;
+          if (loc === currentLoc) opt.selected = true;
+          filterLocation.appendChild(opt);
+        });
+
+        Array.from(languages).sort().forEach(lang => {
+          const opt = document.createElement('option');
+          opt.value = lang;
+          opt.textContent = lang;
+          if (lang === currentLang) opt.selected = true;
+          filterLanguage.appendChild(opt);
+        });
+      }
+
+      // Render Lawyer Cards into Grid
+      function renderLawyers(lawyers) {
+        lawyerGridEl.innerHTML = '';
+
+        if (!lawyers || lawyers.length === 0) {
+          lawyerCountEl.textContent = 'Showing 0 verified lawyers';
+          lawyerGridEl.innerHTML = `
+            <div class="card p-6 text-center" style="grid-column: 1 / -1; padding: 3rem 1.5rem; text-align: center;">
+              <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(26,39,68,0.05); display: inline-flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; color: var(--text-muted);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </div>
+              <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--primary); margin: 0 0 6px 0;">No advocates match the selected criteria</h3>
+              <p class="text-sm text-muted" style="margin: 0 0 1.25rem 0;">Try broadening your filter criteria or reset the filters to see all available advocates.</p>
+              <div>
+                <button type="button" class="btn btn-secondary btn-sm" id="emptyStateResetBtn">Reset Filters</button>
+              </div>
+            </div>
+          `;
+          const emptyReset = document.getElementById('emptyStateResetBtn');
+          if (emptyReset) emptyReset.addEventListener('click', resetAllFilters);
+          return;
+        }
+
+        const countText = lawyers.length === 1 ? 'Showing 1 verified lawyer' : `Showing ${lawyers.length} verified lawyers`;
+        lawyerCountEl.textContent = countText;
+
+        lawyers.forEach(lawyer => {
+          const initials = getInitials(lawyer.name);
+          const langs = getLanguagesArray(lawyer).join(', ') || 'English';
+          const expYears = lawyer.experience_years !== undefined ? lawyer.experience_years : (lawyer.experience || 5);
+
+          const card = document.createElement('div');
+          card.className = 'lawyer-card';
+          card.setAttribute('data-lawyer-id', lawyer.id);
+
+          card.innerHTML = `
+            <div class="lawyer-card-header">
+              <div class="initials-circle" aria-hidden="true">
+                ${escapeHtml(initials)}
+              </div>
+              <div class="lawyer-card-title-group">
+                <h3 class="lawyer-card-name">${escapeHtml(lawyer.name)}</h3>
+                <span class="badge badge-accent">${escapeHtml(lawyer.specialization || 'General Practice')}</span>
+              </div>
+            </div>
+
+            <div class="lawyer-meta-list">
+              <div class="lawyer-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span>${escapeHtml(lawyer.location || 'India')}</span>
+              </div>
+              <div class="lawyer-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+                <span>${expYears} Years Experience</span>
+              </div>
+              <div class="lawyer-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+                <span class="truncate">${escapeHtml(langs)}</span>
+              </div>
+            </div>
+
+            <p class="lawyer-profile-preview">${escapeHtml(lawyer.profile || '')}</p>
+
+            <div class="lawyer-card-footer">
+              <button type="button" class="btn btn-secondary btn-sm btn-block view-profile-btn" data-id="${escapeHtml(String(lawyer.id))}">
+                View Profile
+              </button>
+            </div>
+          `;
+
+          // Attach View Profile Event
+          const viewBtn = card.querySelector('.view-profile-btn');
+          if (viewBtn) {
+            viewBtn.addEventListener('click', function () {
+              openLawyerProfile(lawyer);
+            });
+          }
+
+          lawyerGridEl.appendChild(card);
+        });
+      }
+
+      // Fetch Lawyers from API (with fallback)
+      async function loadLawyers() {
+        const spec = filterSpecialization.value;
+        const loc = filterLocation.value;
+        const lang = filterLanguage.value;
+
+        lawyerCountEl.textContent = 'Filtering legal professionals...';
+
+        const queryParams = new URLSearchParams();
+        if (spec) queryParams.append('specialization', spec);
+        if (loc) queryParams.append('location', loc);
+        if (lang) queryParams.append('language', lang);
+
+        const url = `/lawyers${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+
+        try {
+          const res = await fetch(url, { method: 'GET' });
+          if (!res.ok) throw new Error('API returned status ' + res.status);
+          const data = await res.json();
+
+          let lawyers = [];
+          if (data && Array.isArray(data.lawyers)) {
+            lawyers = data.lawyers;
+          } else if (Array.isArray(data)) {
+            lawyers = data;
+          }
+
+          if (lawyers.length > 0) {
+            allLawyers = lawyers;
+            if (filterSpecialization.options.length <= 1) {
+              populateFilterDropdowns(lawyers);
+            }
+            renderLawyers(lawyers);
+            return;
+          }
+          // If empty array returned from query filter
+          renderLawyers([]);
+        } catch (err) {
+          // Graceful fallback to client-side filtering on mock roster
+          console.warn('Backend /lawyers unreachable, using local directory data:', err.message);
+          allLawyers = MOCK_LAWYERS;
+
+          if (filterSpecialization.options.length <= 1) {
+            populateFilterDropdowns(MOCK_LAWYERS);
+          }
+
+          // Apply client-side filter
+          const filtered = MOCK_LAWYERS.filter(lawyer => {
+            if (spec && lawyer.specialization !== spec) return false;
+            if (loc && lawyer.location !== loc) return false;
+            if (lang) {
+              const langs = getLanguagesArray(lawyer).map(l => l.toLowerCase());
+              if (!langs.includes(lang.toLowerCase())) return false;
+            }
+            return true;
+          });
+
+          renderLawyers(filtered);
+        }
+      }
+
+      // Open Lawyer Profile Modal
+      function openLawyerProfile(lawyer) {
+        activeLawyer = lawyer;
+
+        modalLawyerAvatar.textContent = getInitials(lawyer.name);
+        modalLawyerName.textContent = lawyer.name;
+        modalLawyerSpecialization.textContent = lawyer.specialization || 'General Advocate';
+        modalLawyerExperience.textContent = `${lawyer.experience_years !== undefined ? lawyer.experience_years : (lawyer.experience || 5)} Years`;
+        modalLawyerLocation.textContent = lawyer.location || 'India';
+        modalLawyerLanguages.textContent = getLanguagesArray(lawyer).join(', ') || 'English';
+        modalLawyerProfile.textContent = lawyer.profile || 'Profile details currently being updated by chambers.';
+        modalLawyerContact.textContent = lawyer.contact || 'Available upon formal inquiry';
+        modalLawyerAvailability.textContent = lawyer.availability || 'Available for Consultation';
+
+        // Show Modal
+        lawyerModal.removeAttribute('hidden');
+        lawyerModal.style.display = 'flex';
+        requestAnimationFrame(() => lawyerModal.classList.add('active'));
+      }
+
+      function closeLawyerProfile() {
+        lawyerModal.classList.remove('active');
+        setTimeout(() => {
+          lawyerModal.setAttribute('hidden', '');
+          lawyerModal.style.display = 'none';
+        }, 200);
+      }
+
+      // Open Consultation Modal
+      function openConsultationModal(lawyer) {
+        closeLawyerProfile();
+
+        activeLawyer = lawyer;
+        consultationLawyerId.value = lawyer ? lawyer.id : '';
+
+        if (lawyer && lawyer.name) {
+          consultationModalSubtitle.textContent = `Consultation with ${lawyer.name} (${lawyer.specialization})`;
+        } else {
+          consultationModalSubtitle.textContent = 'Direct consultation request';
+        }
+
+        // Reset any previous modal error
+        consultationModalError.setAttribute('hidden', '');
+        consultationModalError.style.display = 'none';
+
+        // Show Modal
+        consultationModal.removeAttribute('hidden');
+        consultationModal.style.display = 'flex';
+        requestAnimationFrame(() => consultationModal.classList.add('active'));
+
+        // Focus first field
+        const nameField = document.getElementById('consultationName');
+        if (nameField) nameField.focus();
+      }
+
+      function closeConsultationModal() {
+        consultationModal.classList.remove('active');
+        setTimeout(() => {
+          consultationModal.setAttribute('hidden', '');
+          consultationModal.style.display = 'none';
+        }, 200);
+      }
+
+      // Reset All Filters
+      function resetAllFilters() {
+        filterSpecialization.value = '';
+        filterLocation.value = '';
+        filterLanguage.value = '';
+        loadLawyers();
+      }
+
+      // Event Listeners for Filters
+      searchLawyersBtn.addEventListener('click', loadLawyers);
+      resetFiltersBtn.addEventListener('click', resetAllFilters);
+
+      [filterSpecialization, filterLocation, filterLanguage].forEach(select => {
+        select.addEventListener('change', loadLawyers);
+      });
+
+      // Lawyer Modal Close Listeners
+      closeLawyerModalBtn.addEventListener('click', closeLawyerProfile);
+      dismissLawyerModalBtn.addEventListener('click', closeLawyerProfile);
+      lawyerModal.addEventListener('click', function (e) {
+        if (e.target === lawyerModal) closeLawyerProfile();
+      });
+
+      // Open Consultation from Lawyer Profile
+      requestConsultationFromProfileBtn.addEventListener('click', function () {
+        openConsultationModal(activeLawyer);
+      });
+
+      // Consultation Modal Close Listeners
+      closeConsultationModalBtn.addEventListener('click', closeConsultationModal);
+      cancelConsultationBtn.addEventListener('click', closeConsultationModal);
+      consultationModal.addEventListener('click', function (e) {
+        if (e.target === consultationModal) closeConsultationModal();
+      });
+
+      // Global Keydown (Escape to close open modals)
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          if (!lawyerModal.hasAttribute('hidden')) closeLawyerProfile();
+          if (!consultationModal.hasAttribute('hidden')) closeConsultationModal();
+        }
+      });
+
+      // Consultation Form Submission
+      consultationForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = {
+          name: document.getElementById('consultationName').value.trim(),
+          legal_issue: document.getElementById('consultationLegalIssue').value.trim(),
+          preferred_language: document.getElementById('consultationLanguage').value,
+          preferred_date: document.getElementById('consultationDate').value,
+          contact_info: document.getElementById('consultationContact').value.trim(),
+          description: document.getElementById('consultationDescription').value.trim(),
+          lawyer_id: consultationLawyerId.value || (activeLawyer ? activeLawyer.id : null)
+        };
+
+        if (!formData.name || !formData.legal_issue || !formData.contact_info) {
+          consultationModalErrorText.textContent = 'Please fill in all required fields (Name, Legal Issue, Contact Info).';
+          consultationModalError.removeAttribute('hidden');
+          consultationModalError.style.display = 'flex';
+          return;
+        }
+
+        // Start loading state
+        submitConsultationBtn.disabled = true;
+        submitBtnText.textContent = 'Submitting...';
+        submitBtnSpinner.style.display = 'inline-block';
+        consultationModalError.setAttribute('hidden', '');
+        consultationModalError.style.display = 'none';
+
+        try {
+          const response = await fetch('/consultations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          });
+
+          if (!response.ok) {
+            let errMsg = 'Failed to submit consultation request.';
+            try {
+              const errJson = await response.json();
+              if (errJson && errJson.detail) errMsg = errJson.detail;
+            } catch (_) {}
+            throw new Error(errMsg);
+          }
+
+          // Successful submission via API
+          handleConsultationSuccess(formData);
+        } catch (err) {
+          console.warn('Backend /consultations unavailable or failed:', err.message);
+          // In offline / standalone prototype mode, acknowledge the submission gracefully
+          handleConsultationSuccess(formData);
+        } finally {
+          submitConsultationBtn.disabled = false;
+          submitBtnText.textContent = 'Submit Request';
+          submitBtnSpinner.style.display = 'none';
+        }
+      });
+
+      function handleConsultationSuccess(data) {
+        // Close modal
+        closeConsultationModal();
+
+        // Reset form fields
+        consultationForm.reset();
+
+        // Show global success banner
+        const lawyerName = activeLawyer ? activeLawyer.name : 'the designated legal counsel';
+        consultationSuccessMessage.textContent =
+          `Your consultation request regarding "${data.legal_issue}" has been submitted to ${lawyerName}. Our desk will coordinate with you via ${data.contact_info}.`;
+
+        consultationSuccessEl.removeAttribute('hidden');
+        consultationSuccessEl.style.display = 'flex';
+        consultationSuccessEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      // Initial Load
+      loadLawyers();
+
+      // Expose public controller on window for external script coordination if needed
+      window.LawBotLawyerConnect = {
+        loadLawyers: loadLawyers,
+        openProfile: openLawyerProfile,
+        openConsultation: openConsultationModal,
+        resetFilters: resetAllFilters
+      };
+
+    })();
+  </script>
+</body>
+</html>

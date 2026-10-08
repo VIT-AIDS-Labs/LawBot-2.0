@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="LawBot 2.0 - Document Analysis: AI-powered legal document summarization, clause extraction, and metadata extraction.">
+  <title>Document Analysis — LawBot 2.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lawlens.css">
+</head>
+<body data-page="document-analysis">
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <a href="index.html" class="navbar-brand" aria-label="LawBot 2.0 Home">
+        <div class="brand-icon-wrapper" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="M7 21h10"/>
+            <path d="M12 3v18"/>
+            <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+          </svg>
+        </div>
+        <div class="brand-details">
+          <span class="brand-title">LawBot 2.0</span>
+          <span class="brand-tagline">AI-Powered Legal Assistance</span>
+        </div>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a href="index.html" class="nav-link">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a href="legal-qa.html" class="nav-link">Ask LawBot</a>
+          </li>
+          <li class="nav-item">
+            <a href="document-analysis.html" class="nav-link active" aria-current="page">Document Analysis</a>
+          </li>
+          <li class="nav-item">
+            <a href="lawyer-connect.html" class="nav-link">Lawyer Connect</a>
+          </li>
+          <li class="nav-item">
+            <a href="evaluation.html" class="nav-link">Evaluation</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container container-narrow">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Document Analysis</h1>
+          <p class="page-description">Upload legal documents for AI-powered summarization and clause extraction.</p>
+        </div>
+      </div>
+
+      <!-- Upload Section -->
+      <section class="card mb-6" aria-labelledby="uploadSectionTitle">
+        <div class="card-header">
+          <h2 id="uploadSectionTitle" class="card-title">Upload Legal Document</h2>
+          <span class="badge badge-default">PDF Documents</span>
+        </div>
+        <div class="card-body">
+          <!-- Upload Area with dashed border styling -->
+          <div id="uploadArea" class="upload-zone" tabindex="0" role="region" aria-label="PDF File Upload Area">
+            <div class="upload-icon-wrapper" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <div class="upload-title">Drag and drop your PDF here</div>
+            <div class="divider-with-text" style="max-width: 220px; margin: 1rem auto;">or</div>
+            <div>
+              <input type="file" id="fileInput" accept=".pdf" style="display: none;" aria-label="Choose PDF document">
+              <label for="fileInput" class="btn btn-secondary" role="button" tabindex="0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="12" y1="18" x2="12" y2="12"/>
+                  <line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+                Choose File
+              </label>
+            </div>
+            <p class="text-xs text-muted mt-3 mb-0">Supported format: PDF</p>
+          </div>
+
+          <!-- File name display (hidden by default) -->
+          <div id="fileName" class="file-preview" style="display: none;">
+            <div class="file-preview-info">
+              <div class="brand-icon-wrapper" style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: rgba(26, 39, 68, 0.06); border: 1px solid var(--border);" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a2744" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <path d="M9 13h6"/>
+                  <path d="M9 17h6"/>
+                </svg>
+              </div>
+              <div>
+                <div id="fileNameText" class="font-semibold text-sm text-primary"></div>
+                <div id="fileSizeText" class="text-xs text-muted"></div>
+              </div>
+            </div>
+            <button type="button" id="removeFileBtn" class="btn btn-ghost btn-sm" title="Remove selected file" aria-label="Remove selected file">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Remove
+            </button>
+          </div>
+
+          <!-- Upload Controls Bar -->
+          <div class="mt-4 flex items-center justify-between flex-wrap gap-3">
+            <span class="text-xs text-muted">Supported format: PDF</span>
+            <button type="button" id="uploadBtn" class="btn btn-primary" disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              Analyze Document
+            </button>
+          </div>
+
+          <!-- Error Alert Banner -->
+          <div id="analysisError" class="alert alert-danger mt-4" style="display: none;" role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <div class="alert-content">
+              <div class="alert-title">Document Processing Error</div>
+              <div id="analysisErrorText">An error occurred while analyzing the document. Please try again.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Loading Section (hidden by default) -->
+      <section id="analysisLoading" class="card mb-6" style="display: none;" aria-live="polite">
+        <div class="card-body">
+          <div class="loading-state">
+            <div class="spinner spinner-lg"></div>
+            <div class="font-semibold text-base text-primary">Analyzing your document...</div>
+            <div class="text-sm text-muted">Extracting text, computing semantic clauses, and generating legal summary.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results Section (hidden by default) -->
+      <div id="analysisResults" style="display: none;" class="flex flex-col gap-6">
+
+        <!-- 5a. Document Information Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Document Information</h2>
+            <span class="badge badge-success">Analyzed</span>
+          </div>
+          <div class="card-body">
+            <div class="meta-grid">
+              <div class="meta-item">
+                <span class="meta-label">Document Name</span>
+                <span id="docName" class="meta-value truncate text-base">—</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Page Count</span>
+                <span id="docPages" class="meta-value text-base">—</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Processing Status</span>
+                <span class="meta-value text-base text-success">Completed</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">File Type</span>
+                <span class="meta-value text-base">PDF</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5b. Document Summary Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Document Summary</h2>
+          </div>
+          <div class="card-body">
+            <div id="docSummary" class="text-base" style="line-height: 1.7; color: var(--text);">
+              <!-- Injected by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 5c. Important Clauses Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Important Clauses</h2>
+            <span id="clausesCountBadge" class="badge badge-primary">0 Clauses</span>
+          </div>
+          <div class="card-body">
+            <div id="clausesList" class="clause-list">
+              <!-- Injected by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 5d. Extracted Information / Metadata Card -->
+        <div id="metadataCard" class="card">
+          <div class="card-header">
+            <h2 class="card-title">Extracted Information</h2>
+          </div>
+          <div class="card-body">
+            <div id="docMetadata">
+              <!-- Injected by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Disclaimer Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="disclaimer-box mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <div>
+          LawBot 2.0 provides AI-generated legal information for educational and informational purposes and is not a substitute for advice from a qualified legal professional.
+        </div>
+      </div>
+
+      <div class="footer-inner">
+        <div class="footer-copy">
+          &copy; 2025 LawBot 2.0 &bull; AI-Powered Legal Assistance
+        </div>
+        <div class="footer-links">
+          <a href="index.html">Dashboard</a>
+          &bull;
+          <a href="legal-qa.html">Ask LawBot</a>
+          &bull;
+          <a href="document-analysis.html">Document Analysis</a>
+          &bull;
+          <a href="lawyer-connect.html">Lawyer Connect</a>
+          &bull;
+          <a href="evaluation.html">Evaluation</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="lawlens.js"></script>
+  <script>
+    (function() {
+      // DOM Elements
+      const uploadArea = document.getElementById('uploadArea');
+      const fileInput = document.getElementById('fileInput');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const fileNameContainer = document.getElementById('fileName');
+      const fileNameText = document.getElementById('fileNameText');
+      const fileSizeText = document.getElementById('fileSizeText');
+      const removeFileBtn = document.getElementById('removeFileBtn');
+
+      const analysisLoading = document.getElementById('analysisLoading');
+      const analysisResults = document.getElementById('analysisResults');
+      const analysisError = document.getElementById('analysisError');
+      const analysisErrorText = document.getElementById('analysisErrorText');
+
+      const docNameEl = document.getElementById('docName');
+      const docPagesEl = document.getElementById('docPages');
+      const docSummaryEl = document.getElementById('docSummary');
+      const clausesListEl = document.getElementById('clausesList');
+      const clausesCountBadge = document.getElementById('clausesCountBadge');
+      const docMetadataEl = document.getElementById('docMetadata');
+      const metadataCardEl = document.getElementById('metadataCard');
+
+      let currentFile = null;
+
+      function formatFileSize(bytes) {
+        if (!bytes || bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+      }
+
+      function showError(message) {
+        analysisErrorText.textContent = message;
+        analysisError.style.display = 'flex';
+      }
+
+      function clearError() {
+        analysisError.style.display = 'none';
+        analysisErrorText.textContent = '';
+      }
+
+      function handleFile(file) {
+        clearError();
+
+        if (!file) return;
+
+        // Check if file is a PDF
+        const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+        if (!isPdf) {
+          showError('Invalid file type. Please upload a valid PDF document.');
+          clearSelectedFile();
+          return;
+        }
+
+        currentFile = file;
+
+        // Update file name display
+        fileNameText.textContent = file.name;
+        fileSizeText.textContent = formatFileSize(file.size);
+        fileNameContainer.style.display = 'flex';
+
+        // Enable upload button
+        uploadBtn.disabled = false;
+      }
+
+      function clearSelectedFile() {
+        currentFile = null;
+        fileInput.value = '';
+        fileNameContainer.style.display = 'none';
+        fileNameText.textContent = '';
+        fileSizeText.textContent = '';
+        uploadBtn.disabled = true;
+      }
+
+      // Drag and Drop Event Listeners
+      if (uploadArea) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+          uploadArea.addEventListener(eventName, function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.classList.add('dragover');
+          }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+          uploadArea.addEventListener(eventName, function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.classList.remove('dragover');
+          }, false);
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+          const dt = e.dataTransfer;
+          if (dt && dt.files && dt.files.length > 0) {
+            handleFile(dt.files[0]);
+          }
+        }, false);
+
+        // Clicking on uploadArea triggers file input (unless clicking label/input directly)
+        uploadArea.addEventListener('click', function(e) {
+          if (e.target.closest('label') || e.target.closest('input')) {
+            return;
+          }
+          fileInput.click();
+        });
+
+        // Keyboard accessibility
+        uploadArea.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInput.click();
+          }
+        });
+      }
+
+      // File input change
+      if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+          if (e.target.files && e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+          }
+        });
+      }
+
+      // Remove file button
+      if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          clearSelectedFile();
+          clearError();
+        });
+      }
+
+      // Upload & Analyze Action
+      if (uploadBtn) {
+        uploadBtn.addEventListener('click', async function() {
+          if (!currentFile) {
+            showError('Please select a PDF document first.');
+            return;
+          }
+
+          clearError();
+          analysisResults.style.display = 'none';
+          analysisLoading.style.display = 'block';
+          uploadBtn.disabled = true;
+
+          // Scroll to loading indicator
+          analysisLoading.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+          const formData = new FormData();
+          formData.append('file', currentFile);
+
+          try {
+            const response = await fetch('/documents/analyze', {
+              method: 'POST',
+              body: formData
+            });
+
+            if (!response.ok) {
+              let errorMsg = 'Failed to analyze document (Status ' + response.status + ').';
+              try {
+                const errData = await response.json();
+                if (errData && errData.detail) {
+                  errorMsg = typeof errData.detail === 'string' ? errData.detail : JSON.stringify(errData.detail);
+                }
+              } catch (_) {}
+              throw new Error(errorMsg);
+            }
+
+            const data = await response.json();
+            renderAnalysisResults(data, currentFile);
+
+          } catch (err) {
+            console.error('Document analysis error:', err);
+            showError(err.message || 'Unable to connect to the document analysis service. Please verify the server is running and try again.');
+          } finally {
+            analysisLoading.style.display = 'none';
+            uploadBtn.disabled = false;
+          }
+        });
+      }
+
+      function escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
+      }
+
+      function formatTextContent(text) {
+        if (!text) return '<p class="text-muted">No content available.</p>';
+        const paragraphs = String(text).split(/\n\s*\n/);
+        return paragraphs.map(p => '<p>' + escapeHtml(p.trim()).replace(/\n/g, '<br>') + '</p>').join('');
+      }
+
+      function renderAnalysisResults(data, file) {
+        // Document Information
+        docNameEl.textContent = data.filename || file.name || 'Document.pdf';
+        
+        const pageCount = data.page_count !== undefined ? data.page_count : (data.pages || 1);
+        docPagesEl.textContent = pageCount + (pageCount === 1 ? ' Page' : ' Pages');
+
+        // Document Summary
+        if (data.summary) {
+          docSummaryEl.innerHTML = formatTextContent(data.summary);
+        } else {
+          docSummaryEl.innerHTML = '<p class="text-muted">No summary generated for this document.</p>';
+        }
+
+        // Important Clauses
+        clausesListEl.innerHTML = '';
+        const clauses = Array.isArray(data.clauses) ? data.clauses : [];
+        
+        if (clausesCountBadge) {
+          clausesCountBadge.textContent = clauses.length + (clauses.length === 1 ? ' Clause' : ' Clauses');
+        }
+
+        if (clauses.length === 0) {
+          clausesListEl.innerHTML = '<div class="text-muted text-sm" style="padding: 1rem 0;">No critical clauses were identified in this document.</div>';
+        } else {
+          clauses.forEach(function(clause) {
+            const rawImportance = (clause.importance || 'medium').toLowerCase();
+            let cardClass = 'importance-medium';
+            let badgeClass = 'badge-warning';
+            let label = 'Medium Importance';
+
+            if (rawImportance === 'high' || rawImportance === 'critical') {
+              cardClass = 'importance-high';
+              badgeClass = 'badge-danger';
+              label = 'High Importance';
+            } else if (rawImportance === 'low') {
+              cardClass = 'importance-low';
+              badgeClass = 'badge-info';
+              label = 'Low Importance';
+            }
+
+            const clauseCard = document.createElement('div');
+            clauseCard.className = 'clause-card ' + cardClass;
+
+            const clauseHeader = document.createElement('div');
+            clauseHeader.className = 'clause-header';
+
+            const clauseTitle = document.createElement('h3');
+            clauseTitle.className = 'clause-title';
+            clauseTitle.textContent = clause.title || 'Untitled Clause';
+
+            const badge = document.createElement('span');
+            badge.className = 'badge ' + badgeClass;
+            badge.textContent = label;
+
+            clauseHeader.appendChild(clauseTitle);
+            clauseHeader.appendChild(badge);
+
+            const clauseContent = document.createElement('div');
+            clauseContent.className = 'clause-content';
+            clauseContent.innerHTML = formatTextContent(clause.content || '');
+
+            clauseCard.appendChild(clauseHeader);
+            clauseCard.appendChild(clauseContent);
+            clausesListEl.appendChild(clauseCard);
+          });
+        }
+
+        // Metadata / Extracted Information
+        const metadata = data.metadata;
+        if (metadata && typeof metadata === 'object' && Object.keys(metadata).length > 0) {
+          metadataCardEl.style.display = 'flex';
+          let metaHtml = '<div class="kv-list">';
+          for (const key of Object.keys(metadata)) {
+            const val = metadata[key];
+            const displayVal = (typeof val === 'object' && val !== null) ? JSON.stringify(val) : String(val);
+            const humanKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            metaHtml += '<div class="kv-row">' +
+              '<span class="kv-key">' + escapeHtml(humanKey) + '</span>' +
+              '<span class="kv-val">' + escapeHtml(displayVal) + '</span>' +
+            '</div>';
+          }
+          metaHtml += '</div>';
+          docMetadataEl.innerHTML = metaHtml;
+        } else {
+          docMetadataEl.innerHTML = '<div class="text-sm text-muted">No additional structured metadata extracted.</div>';
+          metadataCardEl.style.display = 'flex';
+        }
+
+        // Reveal Results
+        analysisResults.style.display = 'flex';
+        analysisResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      // Expose helper on window for lawlens.js integration if needed
+      window.lawbotDocumentAnalysis = {
+        handleFile: handleFile,
+        renderResults: renderAnalysisResults
+      };
+
+    })();
+  </script>
+
+</body>
+</html>

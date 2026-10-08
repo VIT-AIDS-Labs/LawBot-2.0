@@ -1,0 +1,266 @@
+// frontend/script.js
+
+// DOM elements
+const chatWindow = document.getElementById("chatWindow");
+const userInput  = document.getElementById("userInput");
+const sendBtn    = document.getElementById("sendBtn");
+
+const API_URL = "http://127.0.0.1:8000/predict";
+
+// Utility: add a message bubble to chat
+function addMessage(text, from) {
+  const msg = document.createElement("div");
+  msg.className = "msg " + (from === "user" ? "user" : "bot");
+
+  // avatar
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = from === "user" ? "👤" : "⚖️";
+
+  // bubble
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+
+  // convert \n to <br> for paragraphs / bullet points
+  bubble.innerHTML = text.replace(/\n/g, "<br>");
+
+  if (from === "user") {
+    msg.appendChild(bubble);
+    msg.appendChild(avatar);
+  } else {
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+  }
+
+  chatWindow.appendChild(msg);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+// Main send handler
+async function sendMessage() {
+  const question = (userInput.value || "").trim();
+  if (!question) return;
+
+  // show user message
+  addMessage(question, "user");
+  userInput.value = "";
+
+  // temporary "thinking" bubble
+  const thinkingId = "thinking-" + Date.now();
+  const thinkingDiv = document.createElement("div");
+  thinkingDiv.id = thinkingId;
+  thinkingDiv.className = "msg bot";
+  thinkingDiv.innerHTML = `
+    <div class="avatar">⚖️</div>
+    <div class="bubble">Thinking...</div>
+  `;
+  chatWindow.appendChild(thinkingDiv);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: question })
+    });
+
+    if (!res.ok) {
+      throw new Error("Server error: " + res.status);
+    }
+
+    const data = await res.json(); // { results: [...] }
+
+    // remove "Thinking..." bubble
+    thinkingDiv.remove();
+
+    if (!data.results || data.results.length === 0) {
+      addMessage(
+        "I couldn't find any relevant IPC section for this query. " +
+        "Please try rephrasing or adding more details.",
+        "bot"
+      );
+      return;
+    }
+
+    const top = data.results[0];
+    const others = data.results.slice(1);
+
+    // Build a nice natural-language answer
+    let answer = `Based on your description, this appears to relate to <b>IPC Section ${top.section}</b>.\n\n`;
+
+    answer += `Illustration from similar case:\n• ${top.text}\n\n`;
+    answer += `Confidence: <b>${top.confidence}</b> (similarity score ≈ ${top.score.toFixed(2)}).\n`;
+
+    if (others.length > 0) {
+      answer += `\nOther similar examples in our data:\n`;
+      for (const ex of others) {
+        answer += `• ${ex.text}\n`;
+      }
+    }
+
+    // Show nicely formatted answer
+    addMessage(answer, "bot");
+
+  } catch (err) {
+    console.error(err);
+    thinkingDiv.remove();
+    addMessage(
+      "Sorry, something went wrong while processing your question. " +
+      "Please try again in a moment.",
+      "bot"
+    );
+  }
+}
+
+// Wire up events
+if (sendBtn && userInput) {
+  sendBtn.addEventListener("click", sendMessage);
+  userInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }// frontend/script.js
+
+// If you're using TypeScript checking in VS Code and it complains, uncomment:
+// // @ts-nocheck
+
+// Wrap everything in an IIFE so variables don't leak to global scope
+(function () {
+  const chatWindow = document.getElementById("chatWindow");
+  const userInput  = document.getElementById("userInput");
+  const sendBtn    = document.getElementById("sendBtn");
+
+  const API_URL = "http://127.0.0.1:8000/predict";
+
+  // Add a chat bubble
+  function addMessage(text, from) {
+    if (!chatWindow) return;
+
+    const msg = document.createElement("div");
+    msg.className = "msg " + (from === "user" ? "user" : "bot");
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = from === "user" ? "👤" : "⚖️";
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+
+    // allow basic formatting with \n
+    bubble.innerHTML = String(text).replace(/\n/g, "<br>");
+
+    if (from === "user") {
+      msg.appendChild(bubble);
+      msg.appendChild(avatar);
+    } else {
+      msg.appendChild(avatar);
+      msg.appendChild(bubble);
+    }
+
+    chatWindow.appendChild(msg);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  async function sendMessage() {
+    if (!userInput) return;
+
+    const question = (userInput.value || "").trim();
+    if (!question) return;
+
+    // user bubble
+    addMessage(question, "user");
+    userInput.value = "";
+
+    // thinking bubble
+    const thinkingDiv = document.createElement("div");
+    thinkingDiv.className = "msg bot";
+    thinkingDiv.innerHTML = `
+      <div class="avatar">⚖️</div>
+      <div class="bubble">Thinking...</div>
+    `;
+    if (chatWindow) {
+      chatWindow.appendChild(thinkingDiv);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: question })
+      });
+
+      if (!res.ok) {
+        throw new Error("Server error: " + res.status);
+      }
+
+      const data = await res.json(); // { results: [...] }
+
+      // remove thinking bubble
+      thinkingDiv.remove();
+
+      if (!data.results || data.results.length === 0) {
+        addMessage(
+          "I couldn't find any relevant IPC section for this query. " +
+          "Please try rephrasing or adding more details.",
+          "bot"
+        );
+        return;
+      }
+
+      const top = data.results[0];
+      const others = data.results.slice(1);
+
+      let answer =
+        `Based on your description, this appears to relate to ` +
+        `<b>IPC Section ${top.section}</b>.\n\n`;
+
+      answer += `Illustration from a similar fact pattern:\n• ${top.text}\n\n`;
+      answer += `Confidence: <b>${top.confidence}</b> `
+              + `(similarity score ≈ ${Number(top.score).toFixed(2)}).\n`;
+
+      if (others.length > 0) {
+        answer += `\nOther similar examples in our dataset:\n`;
+        for (const ex of others) {
+          answer += `• ${ex.text}\n`;
+        }
+      }
+
+      addMessage(answer, "bot");
+    } catch (err) {
+      console.error(err);
+      thinkingDiv.remove();
+      addMessage(
+        "Sorry, something went wrong while processing your question. " +
+        "Please try again in a moment.",
+        "bot"
+      );
+    }
+  }
+
+  // Wire up events
+  if (sendBtn && userInput) {
+    sendBtn.addEventListener("click", function () {
+      void sendMessage();
+    });
+
+    userInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        void sendMessage();
+      }
+    });
+  }
+
+  // for inline call from HTML if needed
+  window.initChat = function () {
+    // nothing needed right now; kept for compatibility
+  };
+})();
+
+  });
+}
+
+// for inline call from HTML if needed
+window.initChat = function () {};
+

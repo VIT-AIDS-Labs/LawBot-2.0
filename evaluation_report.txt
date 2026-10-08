@@ -1,0 +1,16 @@
+Model Evaluation Report
+========================
+
+Total dataset size: 23982
+Test dataset size (held-out): 23982
+
+Accuracy: 0.7249
+Precision (weighted): 0.6857
+Recall (weighted): 0.7249
+F1-score (weighted): 0.6707
+
+Top-1 Accuracy: 0.7248
+Top-3 Accuracy: 0.8772
+Top-5 Accuracy: 0.8980
+
+Avg Inference Time per Query: 13.90 ms

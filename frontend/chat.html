@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI LawBot — Chat</title>
+
+  <!-- All CSS inline -->
+  <style>
+    :root{
+      --bg:#05060a;
+      --panel:#0b0f14;
+      --muted:rgba(255,255,255,0.55);
+      --gold:#e0aa2a;
+      --card:#0d1318;
+      --accent:#f1c54d;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:var(--bg);
+      color:#e9eef6;
+    }
+    .container{width:92%;max-width:1200px;margin:0 auto}
+
+    .topbar{
+      background:rgba(3,7,12,0.7);
+      border-bottom:1px solid rgba(255,255,255,0.02);
+    }
+    .topbar-inner{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:12px 0;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:#fff;
+      text-decoration:none;
+    }
+    .brand-mark{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:36px;
+      height:36px;
+      border-radius:8px;
+      background:var(--gold);
+      color:#081217;
+      font-weight:700;
+    }
+    .brand-text{font-weight:700}
+    .spacer{flex:1}
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 20px;
+      border-radius:12px;
+      font-weight:700;
+      text-decoration:none;
+      color:inherit;
+      cursor:pointer;
+      border:none;
+      background:transparent;
+    }
+    .btn-outline{
+      border:1px solid rgba(255,255,255,0.04);
+      color:var(--muted);
+      background:transparent;
+    }
+
+    .chat-wrap{
+      padding:36px 0;
+      display:flex;
+      flex-direction:column;
+      gap:12px
+    }
+    .chat-window{
+      min-height:520px;
+      background:linear-gradient(180deg,#071018,#041018);
+      border-radius:12px;
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      overflow:auto;
+      border:1px solid rgba(255,255,255,0.02)
+    }
+    .msg{
+      display:flex;
+      gap:12px;
+      align-items:flex-end;
+      max-width:88%;
+      margin:6px 0
+    }
+    .msg .avatar{
+      width:44px;height:44px;border-radius:10px;
+      background:var(--gold);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;color:#081217
+    }
+    .msg.bot{align-self:flex-start}
+    .msg.bot .bubble{
+      background:linear-gradient(180deg,#0b1b24,#08141b);
+      padding:14px;border-radius:12px;
+      border:1px solid rgba(255,255,255,0.02)
+    }
+    .msg.user{align-self:flex-end;flex-direction:row-reverse}
+    .msg.user .bubble{
+      background:linear-gradient(180deg,#e0aa2a,#c98e18);
+      color:#041217;padding:14px;border-radius:12px
+    }
+
+    .chat-form{
+      display:flex;gap:12px;
+      align-items:center;margin-top:12px
+    }
+    .chat-form textarea{
+      flex:1;
+      padding:14px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.03);
+      background:transparent;
+      color:inherit;
+      min-height:48px;
+      resize:none
+    }
+    .send-btn{
+      width:56px;height:56px;
+      border-radius:12px;
+      background:var(--gold);
+      border:none;
+      color:#081217;
+      font-weight:800;
+      cursor:pointer
+    }
+
+    .disclaimer{
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+      margin-top:8px
+    }
+
+    @media (max-width:900px){
+      .chat-window{min-height:380px}
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner container">
+    <div class="brand small">
+      <span class="brand-mark" style="width:40px;height:40px;border-radius:10px;font-size:20px;">⚖️</span>
+      <div style="display:flex; flex-direction:column; line-height:1.2;">
+        <span class="brand-text" style="font-size:17px;font-weight:600;">AI LawBot</span>
+        <span style="color:#4dd067; font-size:13px;">● AI Online</span>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <button class="btn btn-outline" style="padding:10px 18px; font-size:14px;">
+      New Chat
+    </button>
+  </div>
+</header>
+
+<main class="container chat-wrap">
+
+  <div class="chat-window" id="chatWindow" role="log" aria-live="polite">
+    <!-- initial bot message -->
+    <div class="msg bot" style="max-width:75%;">
+      <div class="avatar" style="width:48px;height:48px;font-size:22px;border-radius:12px;">⚖️</div>
+      <div class="bubble" style="
+        background:#0e1824;
+        border-radius:14px;
+        padding:16px 20px;
+        font-size:16px;
+        line-height:1.6;
+      ">
+        Hello! I'm AI LawBot, your intelligent legal assistant. I can help you understand legal issues,
+        provide AI-driven insights, and guide you through legal matters. How can I assist you today?
+      </div>
+      <div class="time" style="font-size:12px;color:#8a95a5;margin-left:60px;margin-top:4px;">
+        11:26 PM
+      </div>
+    </div>
+  </div>
+
+  <form id="chatForm" class="chat-form" onsubmit="return false;" style="margin-top:40px;">
+    <textarea id="userInput"
+      placeholder="Type your legal question here..."
+      rows="1"
+      style="background:#0c121b;border:1px solid #1a2332;padding:16px;font-size:16px;border-radius:12px;"
+    ></textarea>
+
+    <button id="sendBtn" class="send-btn"
+      style="width:60px;height:60px;border-radius:12px;font-size:22px;"
+      title="Send">➤</button>
+  </form>
+
+  <div class="disclaimer" style="margin-top:10px; font-size:13px;color:#7a8696;">
+    AI LawBot provides general legal information, not legal advice. Consult a licensed attorney for specific matters.
+  </div>
+
+</main>
+
+<!-- JS: formats response as paragraph -->
+<script>
+ 
+  const chatWindow = document.getElementById("chatWindow");
+  const userInput  = document.getElementById("userInput");
+  const sendBtn    = document.getElementById("sendBtn");
+  const API_URL    = "/predict";   // same server + port as the page
+
+  // Add a chat bubble
+  function addMessage(text, from) {
+    const msg = document.createElement("div");
+    msg.className = "msg " + (from === "user" ? "user" : "bot");
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = from === "user" ? "👤" : "⚖️";
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = String(text).replace(/\n/g, "<br>");
+
+    if (from === "user") {
+      msg.appendChild(bubble);
+      msg.appendChild(avatar);
+    } else {
+      msg.appendChild(avatar);
+      msg.appendChild(bubble);
+    }
+
+    chatWindow.appendChild(msg);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const question = (userInput.value || "").trim();
+    if (!question) return;
+
+    // show user message
+    addMessage(question, "user");
+    userInput.value = "";
+
+    // temporary "thinking" bubble
+    const thinking = document.createElement("div");
+    thinking.className = "msg bot";
+    thinking.innerHTML =
+      '<div class="avatar">⚖️</div><div class="bubble">Thinking...</div>';
+    chatWindow.appendChild(thinking);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: question })
+      });
+
+      if (!res.ok) throw new Error("Server error: " + res.status);
+
+      const data = await res.json();  // { results: [...], best_explanation: ... }
+
+      thinking.remove();
+
+      if (!data.results || data.results.length === 0) {
+        addMessage(
+          "I couldn't find any relevant IPC section for this query. " +
+          "Please try rephrasing or adding more details.",
+          "bot"
+        );
+        return;
+      }
+
+      const top    = data.results[0];
+      const others = data.results.slice(1);
+
+      const explanation = top.explanation || data.best_explanation || "";
+
+      let answer =
+        `Based on your description, this appears to relate to <b>${top.section}</b>.\n\n`;
+
+      if (explanation) {
+        answer += explanation + "\n\n";
+      } else {
+        answer += `Example from a similar real case:\n• ${top.text}\n\n`;
+      }
+
+      answer += `Confidence: <b>${top.confidence}</b> `
+             + `(score ≈ ${Number(top.score).toFixed(2)}).\n`;
+
+      if (others.length > 0) {
+        answer += `\nOther similar examples:\n`;
+        for (const ex of others) {
+          answer += `• ${ex.text}\n`;
+        }
+      }
+
+      addMessage(answer, "bot");
+    } catch (err) {
+      console.error(err);
+      thinking.remove();
+      addMessage(
+        "Sorry, something went wrong while processing your question. " +
+        "Please try again in a moment.",
+        "bot"
+      );
+    }
+  }
+
+  // Wire up events
+  sendBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    sendMessage();
+  });
+
+  userInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+</script>
+
+
+</body>
+</html>

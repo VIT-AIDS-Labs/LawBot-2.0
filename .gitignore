@@ -1,0 +1,5 @@
+﻿model.safetensors
+data/section_embs.npy
+__pycache__/
+*.pyc
+.env

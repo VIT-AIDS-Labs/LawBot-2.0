@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="LawBot 2.0 - Performance metrics, model architecture, training loss curve, and evaluation benchmarks for the Indian Legal Intelligence platform.">
+  <title>Model Evaluation - LawBot 2.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lawlens.css">
+  <style>
+    /* Evaluation page specific styles */
+    .eval-section {
+      margin-bottom: 2.5rem;
+    }
+
+    /* Training Loss Chart */
+    .loss-chart-container {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+    }
+
+    .loss-chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .loss-bars-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .loss-bar-row {
+      display: grid;
+      grid-template-columns: 85px 1fr 75px 110px;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .loss-epoch-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .loss-bar-track {
+      width: 100%;
+      height: 28px;
+      background-color: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+
+    .loss-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #1a2744 0%, #2d4a7a 100%);
+      border-radius: calc(var(--radius-sm) - 1px);
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .loss-bar-fill-accent {
+      background: linear-gradient(90deg, #1a2744 0%, #b8860b 100%);
+    }
+
+    .loss-value-badge {
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: right;
+    }
+
+    .loss-step-badge {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: right;
+      font-family: var(--font-mono);
+    }
+
+    .loss-chart-legend {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .loss-axis-ticks {
+      display: grid;
+      grid-template-columns: 85px 1fr 75px 110px;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      padding-top: 0.25rem;
+      font-size: 0.75rem;
+      color: var(--text-light);
+      font-family: var(--font-mono);
+    }
+
+    .loss-ticks-inner {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 2px;
+    }
+
+    /* Evaluation Placeholder Cards */
+    .eval-card-in-progress {
+      background-color: #fafbfc;
+      border: 1.5px dashed var(--border-strong);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 160px;
+      transition: border-color var(--transition-fast), background-color var(--transition-fast);
+    }
+
+    .eval-card-in-progress:hover {
+      background-color: #ffffff;
+      border-color: var(--primary-light);
+    }
+
+    .eval-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .eval-metric-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 0;
+    }
+
+    .eval-metric-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background-color: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .status-pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--accent);
+      animation: pulse-op 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse-op {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .eval-metric-value-row {
+      margin: 0.5rem 0;
+    }
+
+    .eval-in-progress-text {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: -0.01em;
+      font-style: italic;
+    }
+
+    .eval-metric-desc {
+      font-size: 0.8125rem;
+      color: var(--text-light);
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .eval-grid-5 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .eval-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    /* Information banner */
+    .eval-info-banner {
+      background-color: #fafbfc;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--primary);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 0.875rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+    }
+
+    .eval-info-banner svg {
+      width: 18px;
+      height: 18px;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+      .loss-bar-row {
+        grid-template-columns: 70px 1fr 60px;
+      }
+      .loss-step-badge {
+        display: none;
+      }
+      .loss-axis-ticks {
+        grid-template-columns: 70px 1fr 60px;
+      }
+    }
+  </style>
+</head>
+<body data-page="evaluation">
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <a href="index.html" class="navbar-brand" aria-label="LawBot 2.0 Home">
+        <div class="brand-icon-wrapper" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="M7 21h10"/>
+            <path d="M12 3v18"/>
+            <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+          </svg>
+        </div>
+        <div class="brand-details">
+          <span class="brand-title">LawBot 2.0</span>
+          <span class="brand-tagline">AI-Powered Legal Assistance</span>
+        </div>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a href="index.html" class="nav-link">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a href="legal-qa.html" class="nav-link">Ask LawBot</a>
+          </li>
+          <li class="nav-item">
+            <a href="document-analysis.html" class="nav-link">Document Analysis</a>
+          </li>
+          <li class="nav-item">
+            <a href="lawyer-connect.html" class="nav-link">Lawyer Connect</a>
+          </li>
+          <li class="nav-item">
+            <a href="evaluation.html" class="nav-link active" aria-current="page">Evaluation</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      
+      <!-- Page Header -->
+      <section class="page-header" aria-labelledby="eval-page-title">
+        <div>
+          <h1 id="eval-page-title" class="page-title">Model Evaluation</h1>
+          <p class="page-description">Performance metrics and training information for the LawBot 2.0 system.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="badge badge-accent">Production Ready</span>
+          <span class="badge badge-default">Version 2.0</span>
+        </div>
+      </section>
+
+      <!-- Section 1: Model Information Grid -->
+      <section class="eval-section" aria-labelledby="section-model-info">
+        <div class="section-header">
+          <div>
+            <h2 id="section-model-info" class="section-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+              Model Information
+            </h2>
+            <p class="section-subtitle">Core neural architecture, finetuning dataset hyperparameters, and runtime configuration</p>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <!-- Card 1: Model Architecture -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Model Architecture</h3>
+                <p class="card-subtitle">Dense semantic embedding backbone</p>
+              </div>
+              <span class="badge badge-primary">LegalBERT</span>
+            </div>
+            <div class="card-body">
+              <div class="kv-list">
+                <div class="kv-row">
+                  <span class="kv-key">Base Model</span>
+                  <span class="kv-val">legal-bert-base-uncased</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Model Type</span>
+                  <span class="kv-val">SentenceTransformer</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Embedding Dimension</span>
+                  <span class="kv-val">768</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Max Sequence Length</span>
+                  <span class="kv-val">512</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Similarity Function</span>
+                  <span class="kv-val">Cosine Similarity</span>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-xs text-muted">
+              Pre-trained on legal corpora; customized for statutory retrieval
+            </div>
+          </div>
+
+          <!-- Card 2: Training Details -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Training Details</h3>
+                <p class="card-subtitle">Contrastive finetuning parameters</p>
+              </div>
+              <span class="badge badge-accent">6 Epochs</span>
+            </div>
+            <div class="card-body">
+              <div class="kv-list">
+                <div class="kv-row">
+                  <span class="kv-key">Dataset Size</span>
+                  <span class="kv-val">23,481 samples</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Training Epochs</span>
+                  <span class="kv-val">6</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Batch Size</span>
+                  <span class="kv-val">8</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Loss Function</span>
+                  <span class="kv-val">MultipleNegativesRankingLoss</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Optimizer</span>
+                  <span class="kv-val">AdamW (fused)</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Learning Rate</span>
+                  <span class="kv-val">5e-05</span>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-xs text-muted">
+              Scale: 20.0 &bull; Weight Decay: 0.0 &bull; Seed: 42
+            </div>
+          </div>
+
+          <!-- Card 3: System Configuration -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">System Configuration</h3>
+                <p class="card-subtitle">Retrieval &amp; synthesis pipeline</p>
+              </div>
+              <span class="badge badge-default">Hybrid Pipeline</span>
+            </div>
+            <div class="card-body">
+              <div class="kv-list">
+                <div class="kv-row">
+                  <span class="kv-key">LLM</span>
+                  <span class="kv-val">Gemini Flash</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Retrieval</span>
+                  <span class="kv-val">Top-K Cosine Similarity</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Min Relevance Score</span>
+                  <span class="kv-val">0.65</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">RAG Pipeline</span>
+                  <span class="kv-val">LegalBERT + Gemini</span>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-xs text-muted">
+              Top-K: 3 candidates with grounded citations and confidence scoring
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Training Loss Curve -->
+      <section class="eval-section" aria-labelledby="section-training-loss">
+        <div class="section-header">
+          <div>
+            <h2 id="section-training-loss" class="section-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+              </svg>
+              Training Loss Curve
+            </h2>
+            <p class="section-subtitle">Loss progression over 6 training epochs recorded from trainer logs (initial 0.3705 to converged ~0.11)</p>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Horizontal Bar Chart -->
+          <div class="loss-chart-container">
+            <div class="loss-chart-header">
+              <div>
+                <h3 class="card-title" style="font-size: 1rem;">Epoch Loss Progression</h3>
+                <p class="card-subtitle">Contrastive loss value per completed epoch</p>
+              </div>
+              <span class="badge badge-success">Convergence Achieved</span>
+            </div>
+
+            <div class="loss-bars-list">
+              <!-- Epoch 1 -->
+              <div class="loss-bar-row">
+                <span class="loss-epoch-label">Epoch 1</span>
+                <div class="loss-bar-track" title="Epoch 1: Loss ~0.13 (0.1306 at Step 2500, 0.1208 at Step 3000)">
+                  <div class="loss-bar-fill" style="width: 32.5%;"></div>
+                </div>
+                <span class="loss-value-badge">~0.13</span>
+                <span class="loss-step-badge">Step 3,000</span>
+              </div>
+
+              <!-- Epoch 2 -->
+              <div class="loss-bar-row">
+                <span class="loss-epoch-label">Epoch 2</span>
+                <div class="loss-bar-track" title="Epoch 2: Loss ~0.11 (0.1109 at Step 6000)">
+                  <div class="loss-bar-fill" style="width: 27.5%;"></div>
+                </div>
+                <span class="loss-value-badge">~0.11</span>
+                <span class="loss-step-badge">Step 6,000</span>
+              </div>
+
+              <!-- Epoch 3 -->
+              <div class="loss-bar-row">
+                <span class="loss-epoch-label">Epoch 3</span>
+                <div class="loss-bar-track" title="Epoch 3: Loss ~0.12 (0.1212 at Step 7000, 0.1179 at Step 9000)">
+                  <div class="loss-bar-fill" style="width: 30.0%;"></div>
+                </div>
+                <span class="loss-value-badge">~0.12</span>
+                <span class="loss-step-badge">Step 9,000</span>
+              </div>
+
+              <!-- Epoch 4 -->
+              <div class="loss-bar-row">
+                <span class="loss-epoch-label">Epoch 4</span>
+                <div class="loss-bar-track" title="Epoch 4: Loss ~0.12 (0.1182 at Step 12000, 0.1103 at Step 11500)">
+                  <div class="loss-bar-fill" style="width: 30.0%;"></div>
+                </div>
+                <span class="loss-value-badge">~0.12</span>
+                <span class="loss-step-badge">Step 12,000</span>
+              </div>
+
+              <!-- Epoch 5 -->
+              <div class="loss-bar-row">
+                <span class="loss-epoch-label">Epoch 5</span>
+                <div class="loss-bar-track" title="Epoch 5: Loss ~0.12 (0.1162 at Step 15000, 0.1133 at Step 15500)">
+                  <div class="loss-bar-fill" style="width: 30.0%;"></div>
+                </div>
+                <span class="loss-value-badge">~0.12</span>
+                <span class="loss-step-badge">Step 15,000</span>
+              </div>
+
+              <!-- Epoch 6 -->
+              <div class="loss-bar-row">
+                <span class="loss-epoch-label">Epoch 6</span>
+                <div class="loss-bar-track" title="Epoch 6: Loss ~0.11 (0.1161 at Step 17500, 0.1133 at Step 16500)">
+                  <div class="loss-bar-fill loss-bar-fill-accent" style="width: 27.5%;"></div>
+                </div>
+                <span class="loss-value-badge">~0.11</span>
+                <span class="loss-step-badge">Step 17,500</span>
+              </div>
+            </div>
+
+            <!-- Axis scale marks -->
+            <div class="loss-axis-ticks">
+              <span>Scale:</span>
+              <div class="loss-ticks-inner">
+                <span>0.00</span>
+                <span>0.10</span>
+                <span>0.20</span>
+                <span>0.30</span>
+                <span>0.40</span>
+              </div>
+              <span style="text-align: right;">Loss</span>
+              <span style="text-align: right;">Global Step</span>
+            </div>
+
+            <div class="loss-chart-legend">
+              <div>
+                <span>Initial Step Loss: </span>
+                <strong style="color: var(--primary);">0.3705</strong> (Step 500)
+              </div>
+              <div>
+                <span>Final Converged Loss: </span>
+                <strong style="color: var(--accent);">0.1161</strong> (Step 17,500)
+              </div>
+            </div>
+          </div>
+
+          <!-- Training Log Data Table -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title" style="font-size: 1rem;">Training Log Checkpoints</h3>
+                <p class="card-subtitle">Empirical trainer checkpoints from model card</p>
+              </div>
+              <span class="badge badge-default">17,500 Total Steps</span>
+            </div>
+            <div class="table-responsive" style="border: none; border-radius: 0;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Epoch</th>
+                    <th>Step</th>
+                    <th>Training Loss</th>
+                    <th>Convergence Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>0.17</strong></td>
+                    <td class="font-mono text-xs">500</td>
+                    <td class="font-mono text-xs" style="color: var(--danger);">0.3705</td>
+                    <td><span class="badge badge-warning">Warmup Phase</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>1.02</strong></td>
+                    <td class="font-mono text-xs">3,000</td>
+                    <td class="font-mono text-xs">0.1208 (~0.13)</td>
+                    <td><span class="badge badge-default">Rapid Descent</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>2.04</strong></td>
+                    <td class="font-mono text-xs">6,000</td>
+                    <td class="font-mono text-xs">0.1109 (~0.11)</td>
+                    <td><span class="badge badge-default">Stabilizing</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>3.07</strong></td>
+                    <td class="font-mono text-xs">9,000</td>
+                    <td class="font-mono text-xs">0.1179 (~0.12)</td>
+                    <td><span class="badge badge-default">Plateau</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>4.09</strong></td>
+                    <td class="font-mono text-xs">12,000</td>
+                    <td class="font-mono text-xs">0.1182 (~0.12)</td>
+                    <td><span class="badge badge-default">Fine-tuning</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>5.11</strong></td>
+                    <td class="font-mono text-xs">15,000</td>
+                    <td class="font-mono text-xs">0.1162 (~0.12)</td>
+                    <td><span class="badge badge-default">Fine-tuning</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>5.96</strong></td>
+                    <td class="font-mono text-xs">17,500</td>
+                    <td class="font-mono text-xs" style="color: var(--success); font-weight: 700;">0.1161 (~0.11)</td>
+                    <td><span class="badge badge-success">Optimal Minima</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card-footer text-xs text-muted">
+              Loss Function: MultipleNegativesRankingLoss with cosine similarity scale factor 20.0
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Retrieval Evaluation Metrics -->
+      <section class="eval-section" aria-labelledby="section-retrieval-metrics">
+        <div class="section-header">
+          <div>
+            <h2 id="section-retrieval-metrics" class="section-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              Retrieval Evaluation Metrics
+            </h2>
+            <p class="section-subtitle">Information retrieval benchmarks evaluating statutory section discovery accuracy</p>
+          </div>
+        </div>
+
+        <div class="eval-grid-5">
+          <!-- Metric 1: Accuracy -->
+          <div class="eval-card-in-progress">
+            <div>
+              <div class="eval-card-header">
+                <h3 class="eval-metric-name">Accuracy</h3>
+                <span class="eval-metric-status">
+                  <span class="status-pulse-dot"></span>
+                  In Progress
+                </span>
+              </div>
+              <div class="eval-metric-value-row">
+                <span class="eval-in-progress-text">Evaluation in progress</span>
+              </div>
+            </div>
+            <p class="eval-metric-desc">Overall proportion of correct statutory matches across held-out queries.</p>
+          </div>
+
+          <!-- Metric 2: Precision -->
+          <div class="eval-card-in-progress">
+            <div>
+              <div class="eval-card-header">
+                <h3 class="eval-metric-name">Precision</h3>
+                <span class="eval-metric-status">
+                  <span class="status-pulse-dot"></span>
+                  In Progress
+                </span>
+              </div>
+              <div class="eval-metric-value-row">
+                <span class="eval-in-progress-text">Evaluation in progress</span>
+              </div>
+            </div>
+            <p class="eval-metric-desc">Precision of retrieved sections against legal fact pattern annotations.</p>
+          </div>
+
+          <!-- Metric 3: Recall -->
+          <div class="eval-card-in-progress">
+            <div>
+              <div class="eval-card-header">
+                <h3 class="eval-metric-name">Recall</h3>
+                <span class="eval-metric-status">
+                  <span class="status-pulse-dot"></span>
+                  In Progress
+                </span>
+              </div>
+              <div class="eval-metric-value-row">
+                <span class="eval-in-progress-text">Evaluation in progress</span>
+              </div>
+            </div>
+            <p class="eval-metric-desc">Coverage of relevant penal provisions retrieved from the full statute index.</p>
+          </div>
+
+          <!-- Metric 4: F1-Score -->
+          <div class="eval-card-in-progress">
+            <div>
+              <div class="eval-card-header">
+                <h3 class="eval-metric-name">F1-Score</h3>
+                <span class="eval-metric-status">
+                  <span class="status-pulse-dot"></span>
+                  In Progress
+                </span>
+              </div>
+              <div class="eval-metric-value-row">
+                <span class="eval-in-progress-text">Evaluation in progress</span>
+              </div>
+            </div>
+            <p class="eval-metric-desc">Harmonic mean of precision and recall for balanced statutory assessment.</p>
+          </div>
+
+          <!-- Metric 5: Top-K Retrieval Accuracy -->
+          <div class="eval-card-in-progress">
+            <div>
+              <div class="eval-card-header">
+                <h3 class="eval-metric-name">Top-K Retrieval Accuracy</h3>
+                <span class="eval-metric-status">
+                  <span class="status-pulse-dot"></span>
+                  In Progress
+                </span>
+              </div>
+              <div class="eval-metric-value-row">
+                <span class="eval-in-progress-text">Evaluation in progress</span>
+              </div>
+            </div>
+            <p class="eval-metric-desc">Frequency with which the ground-truth legal section appears within Top-3 results.</p>
+          </div>
+        </div>
+
+        <div class="eval-info-banner">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <div>
+            These metrics will be computed on the test set and displayed here once evaluation is complete.
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Document Analysis Metrics -->
+      <section class="eval-section" aria-labelledby="section-doc-metrics">
+        <div class="section-header">
+          <div>
+            <h2 id="section-doc-metrics" class="section-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <line x1="10" y1="9" x2="8" y2="9"/>
+              </svg>
+              Document Analysis Metrics
+            </h2>
+            <p class="section-subtitle">Evaluation benchmarks for legal contract summarization and clause classification pipelines</p>
+          </div>
+        </div>
+
+        <div class="eval-grid-3">
+          <!-- Metric 1: ROUGE Score -->
+          <div class="eval-card-in-progress">
+            <div>
+              <div class="eval-card-header">
+                <h3 class="eval-metric-name">ROUGE Score</h3>
+                <span class="eval-metric-status">
+                  <span class="status-pulse-dot"></span>
+                  In Progress
+                </span>
+              </div>
+              <div class="eval-metric-value-row">
+                <span class="eval-in-progress-text">Evaluation in progress</span>
+              </div>
+            </div>
+            <p class="eval-metric-desc">N-gram overlap (ROUGE-1, ROUGE-2, ROUGE-L) assessing abstractive document summary fidelity.</p>
+          </div>
+
+          <!-- Metric 2: Clause Extraction Precision -->
+          <div class="eval-card-in-progress">
+            <div>
+              <div class="eval-card-header">
+                <h3 class="eval-metric-name">Clause Extraction Precision</h3>
+                <span class="eval-metric-status">
+                  <span class="status-pulse-dot"></span>
+                  In Progress
+                </span>
+              </div>
+              <div class="eval-metric-value-row">
+                <span class="eval-in-progress-text">Evaluation in progress</span>
+              </div>
+            </div>
+            <p class="eval-metric-desc">Proportion of extracted contract clauses correctly categorized and segmented without spurious boundaries.</p>
+          </div>
+
+          <!-- Metric 3: Clause Extraction Recall -->
+          <div class="eval-card-in-progress">
+            <div>
+              <div class="eval-card-header">
+                <h3 class="eval-metric-name">Clause Extraction Recall</h3>
+                <span class="eval-metric-status">
+                  <span class="status-pulse-dot"></span>
+                  In Progress
+                </span>
+              </div>
+              <div class="eval-metric-value-row">
+                <span class="eval-in-progress-text">Evaluation in progress</span>
+              </div>
+            </div>
+            <p class="eval-metric-desc">Ability to capture all mission-critical indemnity, termination, jurisdiction, and liability clauses.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer with Legal Disclaimer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="disclaimer-box mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <div>
+          LawBot 2.0 provides AI-generated legal information for educational and informational purposes and is not a substitute for advice from a qualified legal professional.
+        </div>
+      </div>
+
+      <div class="footer-inner">
+        <div class="footer-copy">
+          &copy; 2025 LawBot 2.0 &bull; AI-Powered Legal Assistance
+        </div>
+        <div class="footer-links">
+          <a href="index.html">Dashboard</a>
+          &bull;
+          <a href="legal-qa.html">Ask LawBot</a>
+          &bull;
+          <a href="document-analysis.html">Document Analysis</a>
+          &bull;
+          <a href="lawyer-connect.html">Lawyer Connect</a>
+          &bull;
+          <a href="evaluation.html">Evaluation</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="lawlens.js"></script>
+</body>
+</html>

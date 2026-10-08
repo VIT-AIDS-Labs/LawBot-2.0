@@ -1,0 +1,1 @@
+Folder contains a static professional UI matching the screenshots. Open index.html with Live Server in VS Code.

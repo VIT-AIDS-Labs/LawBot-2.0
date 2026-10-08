@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ask LawBot — LawBot 2.0</title>
+  <link rel="stylesheet" href="lawlens.css" />
+  <style>
+    body[data-page="legal-qa"] {
+      overflow: hidden;
+      margin: 0;
+    }
+    /* ---- Chat Interface Styles ---- */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 66px); /* subtract navbar height */
+      width: 100%;
+      background: var(--card-bg);
+    }
+
+    .chat-header {
+      padding: 1rem 1.5rem;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .chat-header-icon {
+      width: 42px;
+      height: 42px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .chat-header h1 {
+      font-size: 1.2rem;
+      margin: 0;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .chat-header p {
+      margin: 0;
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      background: #f0f2f5;
+    }
+
+    .chat-welcome {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-muted);
+    }
+
+    .chat-welcome h2 {
+      color: var(--primary);
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .chat-welcome p {
+      font-size: 0.9rem;
+      max-width: 500px;
+      margin: 0 auto 1rem;
+      line-height: 1.6;
+    }
+
+    .chat-welcome-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .suggestion-chip {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      color: var(--primary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .suggestion-chip:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Message bubbles */
+    .message {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 85%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message-bot {
+      align-self: flex-start;
+    }
+
+    .message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .message-user .message-avatar {
+      background: var(--primary-light);
+      color: #fff;
+    }
+
+    .message-bot .message-avatar {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .message-content {
+      padding: 0.85rem 1.1rem;
+      border-radius: 16px;
+      font-size: 0.92rem;
+      line-height: 1.7;
+    }
+
+    .message-user .message-content {
+      background: var(--primary);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message-bot .message-content {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-bot .message-content p {
+      margin: 0 0 0.6rem 0;
+    }
+
+    .message-bot .message-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Reference cards inside chat */
+    .chat-references {
+      margin-top: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .chat-ref-card {
+      background: #f8f9fa;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .chat-ref-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+
+    .chat-ref-section {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .chat-ref-act {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .chat-ref-legal-text {
+      padding: 0.5rem;
+      background: #fff;
+      border-left: 3px solid var(--primary);
+      border-radius: 4px;
+      margin-top: 0.4rem;
+      font-size: 0.83rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .chat-ref-score {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.4rem;
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      max-width: 85%;
+      align-self: flex-start;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .typing-dots {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      padding: 0.85rem 1.2rem;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .typing-dots span {
+      width: 7px;
+      height: 7px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite both;
+    }
+
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* Input area */
+    .chat-input-area {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--border);
+      background: var(--card-bg);
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    .chat-input-area textarea {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 0.7rem 1.1rem;
+      font-size: 0.92rem;
+      font-family: inherit;
+      resize: none;
+      max-height: 120px;
+      line-height: 1.4;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .chat-input-area textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .chat-send-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.1s;
+      flex-shrink: 0;
+    }
+
+    .chat-send-btn:hover {
+      background: var(--primary-light);
+    }
+
+    .chat-send-btn:active {
+      transform: scale(0.95);
+    }
+
+    .chat-send-btn:disabled {
+      background: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    .chat-disclaimer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      padding: 0.4rem;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body data-page="legal-qa">
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);">
+          <path d="M12 3v18"/><path d="M5 7l7-4 7 4"/><path d="M5 7v2l7 4 7-4V7"/><path d="M4 21h16"/>
+        </svg>
+        <div>
+          <span class="brand-name">LawBot 2.0</span>
+          <span class="brand-tagline">AI-Powered Legal Assistance</span>
+        </div>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="index.html" class="nav-link">Dashboard</a></li>
+        <li><a href="legal-qa.html" class="nav-link active" aria-current="page">Ask LawBot</a></li>
+        <li><a href="document-analysis.html" class="nav-link">Document Analysis</a></li>
+        <li><a href="lawyer-connect.html" class="nav-link">Lawyer Connect</a></li>
+        <li><a href="evaluation.html" class="nav-link">Evaluation</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Chat Interface -->
+  <div class="chat-container">
+
+    <!-- Chat Header -->
+    <div class="chat-header">
+      <div class="chat-header-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v18"/><path d="M5 7l7-4 7 4"/><path d="M5 7v2l7 4 7-4V7"/><path d="M4 21h16"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Ask LawBot</h1>
+        <p>AI-powered legal Q&A grounded in Indian Penal Code provisions</p>
+      </div>
+    </div>
+
+    <!-- Chat Messages -->
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-welcome" id="chatWelcome">
+        <h2>Welcome to Ask LawBot</h2>
+        <p>
+          Ask any legal question and receive AI-assisted explanations grounded in relevant legal provisions retrieved by our fine-tuned LegalBERT model.
+        </p>
+        <p style="font-size: 0.82rem; color: var(--text-muted);">Try one of these examples:</p>
+        <div class="chat-welcome-suggestions">
+          <button class="suggestion-chip" onclick="useSuggestion(this)">What are the legal consequences of causing death by negligence?</button>
+          <button class="suggestion-chip" onclick="useSuggestion(this)">What happens if someone is caught stealing?</button>
+          <button class="suggestion-chip" onclick="useSuggestion(this)">What is the punishment for forgery?</button>
+          <button class="suggestion-chip" onclick="useSuggestion(this)">Can a person be charged for criminal intimidation?</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="chat-input-area">
+      <textarea
+        id="chatInput"
+        rows="1"
+        placeholder="Type your legal question..."
+        onkeydown="handleChatKey(event)"
+        oninput="autoResize(this)"
+      ></textarea>
+      <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()" title="Send">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="chat-disclaimer">
+      LawBot 2.0 provides AI-generated legal information for educational purposes. Not a substitute for professional legal advice.
+    </div>
+  </div>
+
+  <script>
+    // ---- Ask LawBot Chat Interface ----
+    (function () {
+      "use strict";
+      const API_BASE = "";
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function formatAnswer(text) {
+        if (!text) return "";
+        return text
+          .split(/\n\n+/)
+          .map(function (p) {
+            return "<p>" + escapeHtml(p.trim()).replace(/\n/g, "<br>") + "</p>";
+          })
+          .join("");
+      }
+
+      function confidenceBadge(conf) {
+        var cls = "badge-info";
+        if (conf === "High") cls = "confidence-high";
+        else if (conf === "Medium") cls = "confidence-medium";
+        else cls = "confidence-low";
+        return '<span class="badge ' + cls + '" style="font-size:0.75rem;">' + escapeHtml(conf) + "</span>";
+      }
+
+      function scrollToBottom() {
+        var container = document.getElementById("chatMessages");
+        setTimeout(function () {
+          container.scrollTop = container.scrollHeight;
+        }, 50);
+      }
+
+      function addUserMessage(text) {
+        var welcome = document.getElementById("chatWelcome");
+        if (welcome) welcome.remove();
+
+        var msg = document.createElement("div");
+        msg.className = "message message-user";
+        msg.innerHTML =
+          '<div class="message-avatar">You</div>' +
+          '<div class="message-content">' + escapeHtml(text) + "</div>";
+        document.getElementById("chatMessages").appendChild(msg);
+        scrollToBottom();
+      }
+
+      function addTypingIndicator() {
+        var indicator = document.createElement("div");
+        indicator.className = "typing-indicator";
+        indicator.id = "typingIndicator";
+        indicator.innerHTML =
+          '<div class="message-avatar" style="background:var(--primary);color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;">LB</div>' +
+          '<div class="typing-dots"><span></span><span></span><span></span></div>';
+        document.getElementById("chatMessages").appendChild(indicator);
+        scrollToBottom();
+      }
+
+      function removeTypingIndicator() {
+        var el = document.getElementById("typingIndicator");
+        if (el) el.remove();
+      }
+
+      function addBotMessage(answer, references) {
+        removeTypingIndicator();
+
+        var msg = document.createElement("div");
+        msg.className = "message message-bot";
+
+        var content = '<div class="message-avatar">LB</div>';
+        content += '<div class="message-content">';
+        content += formatAnswer(answer);
+
+        // Add reference cards
+        if (references && references.length > 0) {
+          content += '<div class="chat-references">';
+          content += '<div style="font-weight:600;font-size:0.88rem;color:var(--primary);margin-bottom:0.25rem;">Relevant Legal Provisions</div>';
+
+          references.forEach(function (ref) {
+            var sectionLabel = ref.section || ref.section_code || "Unknown";
+            var actLabel = ref.act || "Indian Penal Code";
+            var titleLabel = ref.title ? " — " + escapeHtml(ref.title) : "";
+
+            content += '<div class="chat-ref-card">';
+            content += '<div class="chat-ref-header">';
+            content += '<span class="chat-ref-section">Section ' + escapeHtml(sectionLabel) + escapeHtml(titleLabel) + "</span>";
+            content += '<span class="chat-ref-act">' + escapeHtml(actLabel) + "</span>";
+            content += "</div>";
+
+            if (ref.legal_text) {
+              content += '<div class="chat-ref-legal-text">' + escapeHtml(ref.legal_text) + "</div>";
+            }
+
+            content += '<div class="chat-ref-score">';
+            content += confidenceBadge(ref.confidence);
+            content += '<span style="font-size:0.78rem;color:var(--text-muted);">Score: ' + (ref.score ? ref.score.toFixed(4) : "N/A") + "</span>";
+            content += "</div>";
+            content += "</div>";
+          });
+
+          content += "</div>";
+        }
+
+        content += "</div>";
+        msg.innerHTML = content;
+        document.getElementById("chatMessages").appendChild(msg);
+        scrollToBottom();
+      }
+
+      function addErrorMessage(errText) {
+        removeTypingIndicator();
+        var msg = document.createElement("div");
+        msg.className = "message message-bot";
+        msg.innerHTML =
+          '<div class="message-avatar">LB</div>' +
+          '<div class="message-content" style="border-color:#e74c3c;">' +
+          "<p><strong>Error:</strong> " + escapeHtml(errText) + "</p>" +
+          "<p>Please try again or rephrase your question.</p></div>";
+        document.getElementById("chatMessages").appendChild(msg);
+        scrollToBottom();
+      }
+
+      // Global functions
+      window.sendChatMessage = function () {
+        var input = document.getElementById("chatInput");
+        var sendBtn = document.getElementById("chatSendBtn");
+        var query = (input.value || "").trim();
+        if (!query) return;
+
+        addUserMessage(query);
+        input.value = "";
+        input.style.height = "auto";
+        sendBtn.disabled = true;
+
+        addTypingIndicator();
+
+        fetch(API_BASE + "/legal/query", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: query }),
+        })
+          .then(function (res) {
+            if (!res.ok) throw new Error("Server error: " + res.status);
+            return res.json();
+          })
+          .then(function (data) {
+            sendBtn.disabled = false;
+            if (!data.references || data.references.length === 0) {
+              addBotMessage(
+                data.answer || "No sufficiently relevant legal provisions were found for your query. Please try rephrasing your question or adding more specific details.",
+                []
+              );
+            } else {
+              addBotMessage(data.answer, data.references);
+            }
+          })
+          .catch(function (err) {
+            console.error(err);
+            sendBtn.disabled = false;
+            addErrorMessage(err.message);
+          });
+      };
+
+      window.handleChatKey = function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendChatMessage();
+        }
+      };
+
+      window.autoResize = function (el) {
+        el.style.height = "auto";
+        el.style.height = Math.min(el.scrollHeight, 120) + "px";
+      };
+
+      window.useSuggestion = function (btn) {
+        var input = document.getElementById("chatInput");
+        input.value = btn.textContent;
+        sendChatMessage();
+      };
+    })();
+  </script>
+</body>
+</html>
